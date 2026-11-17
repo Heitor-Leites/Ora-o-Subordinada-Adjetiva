@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Jornada da Gramática: Oração Subordinada Adjetiva</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d0814;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 1280px;
+      max-height: 720px;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.85);
+      background: #000;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .uiLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    .hudHeader {
+      pointer-events: auto;
+      background: rgba(18, 12, 34, 0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      align-self: flex-start;
+      transition: all 0.25s ease;
+    }
+    .hudHeader.minimized {
+      padding: 8px 14px;
+      gap: 0;
+    }
+    .hudHeader.minimized .hudTitle,
+    .hudHeader.minimized .controlsHint {
+      display: none;
+    }
+    .hudTitle {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffd700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .controlsHint {
+      background: rgba(13, 8, 20, 0.7);
+      backdrop-filter: blur(6px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .toggleHudBtn {
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      color: #ffd700;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggleHudBtn:hover {
+      background: rgba(255, 215, 0, 0.3);
+    }
+    .restartBtn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      pointer-events: auto;
+      background: rgba(18, 12, 34, 0.8);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      color: #ffd700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: all 0.2s;
+    }
+    .restartBtn:hover {
+      background: rgba(255, 215, 0, 0.2);
+    }
+    .mobileControls {
+      display: none;
+      pointer-events: auto;
+      justify-content: space-between;
+      align-items: flex-end;
+      width: 100%;
+      padding-bottom: 10px;
+    }
+    .dPad, .actionPad {
+      display: flex;
+      gap: 12px;
+    }
+    .btnTouch {
+      width: 58px;
+      height: 58px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      color: white;
+      font-size: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      touch-action: manipulation;
+    }
+    .btnTouch:active {
+      background: rgba(0, 240, 255, 0.4);
+      border-color: #00f0ff;
+    }
+    .questionModal {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(18, 12, 34, 0.95);
+      border: 2px solid #ffd700;
+      padding: 24px;
+      border-radius: 12px;
+      color: white;
+      width: 90%;
+      max-width: 480px;
+      text-align: center;
+      z-index: 20;
+      pointer-events: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+    .qBtn {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      margin-top: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .qBtn:hover {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: #ffd700;
+    }
+    @media (max-width: 900px) {
+      .mobileControls { display: flex; }
+      .controlsHint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="uiLayer">
+      <div class="hudHeader" id="hudHeader">
+        <span class="hudTitle">Oração Subordinada Adjetiva</span>
+        <span class="controlsHint">Teclas: A / D mover | Espaco, W ou Seta Cima pular (2x para voar)</span>
+        <button class="toggleHudBtn" id="toggleHudBtn" onclick="toggleHud()">Ocultar</button>
+      </div>
+      <button class="restartBtn" onclick="restartGame()">Reiniciar</button>
+
+      <div class="mobileControls">
+        <div class="dPad">
+          <div class="btnTouch" id="btnLeft">◄</div>
+          <div class="btnTouch" id="btnRight">►</div>
+        </div>
+        <div class="actionPad">
+          <div class="btnTouch" id="btnJump" style="width:70px; height:70px; font-size:16px; font-weight:bold;">PULAR</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="questionModal" id="questionModal">
+      <h3 id="qTitle" style="color:#ffd700; margin-bottom:10px; font-size:18px;">Desafio Sintatico</h3>
+      <p id="qText" style="margin-bottom:15px; font-size:14px; line-height:1.4;"></p>
+      <div id="qOptions"></div>
+      <p id="qFeedback" style="margin-top:12px; font-size:13px; font-weight:bold;"></p>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const gameWidth = 480;
+const gameHeight = 270;
+const worldWidth = 3200;
+
+canvas.width = gameWidth;
+canvas.height = gameHeight;
+
+let cameraX = 0;
+let gamePaused = false;
+let currentQuestion = null;
+let correctCount = 0;
+let totalAttempted = 0;
+let currentStageIndex = 0;
+let isExtraMode = false;
+let extraPromptTriggered = false;
+let lastJumpPressTime = 0;
+
+function toggleHud() {
+  document.activeElement.blur();
+  const hud = document.getElementById('hudHeader');
+  const btn = document.getElementById('toggleHudBtn');
+  hud.classList.toggle('minimized');
+  btn.textContent = hud.classList.contains('minimized') ? 'Menu' : 'Ocultar';
+}
+
+const biomes = [
+  {
+    name: "Floresta Encantada",
+    skyTop: "#0c071e",
+    skyMid: "#1a0f35",
+    skyBot: "#2d1445",
+    celestialColor: "#fff6d5",
+    celestialGlow: "#ffd700",
+    cloudColor: "rgba(215, 190, 255, 0.25)",
+    mountainFar: "#1e1233",
+    mountainNear: "#1b233a",
+    groundFill: "#1a331e",
+    groundTop: "#38b000",
+    liquidTop: "#105e7a",
+    liquidBot: "#052338",
+    liquidWave: "rgba(0, 240, 255, 0.3)",
+    bridgeFill: "#5c3a21",
+    bridgePost: "#3d2514",
+    platFill: "#432818",
+    platTop: "#52b788"
+  },
+  {
+    name: "Deserto Dourado",
+    skyTop: "#2b0902",
+    skyMid: "#7a280a",
+    skyBot: "#d96b1c",
+    celestialColor: "#fff099",
+    celestialGlow: "#ffaa00",
+    cloudColor: "rgba(255, 210, 150, 0.25)",
+    mountainFar: "#59200b",
+    mountainNear: "#8c3b14",
+    groundFill: "#b56c24",
+    groundTop: "#f4b942",
+    liquidTop: "#1ca3c9",
+    liquidBot: "#0c5673",
+    liquidWave: "rgba(255, 255, 255, 0.4)",
+    bridgeFill: "#75461b",
+    bridgePost: "#4a2a0d",
+    platFill: "#8c4a19",
+    platTop: "#e6a132"
+  },
+  {
+    name: "Montanhas Geladas",
+    skyTop: "#041629",
+    skyMid: "#0d3559",
+    skyBot: "#296999",
+    celestialColor: "#e0f7ff",
+    celestialGlow: "#80e5ff",
+    cloudColor: "rgba(220, 245, 255, 0.35)",
+    mountainFar: "#133b5c",
+    mountainNear: "#235780",
+    groundFill: "#2a4d69",
+    groundTop: "#e0fbfc",
+    liquidTop: "#4ea8de",
+    liquidBot: "#1d3557",
+    liquidWave: "rgba(255, 255, 255, 0.6)",
+    bridgeFill: "#4a5568",
+    bridgePost: "#2d3748",
+    platFill: "#3d5a80",
+    platTop: "#ffffff"
+  },
+  {
+    name: "Reino Vulcanico",
+    skyTop: "#140202",
+    skyMid: "#3d0808",
+    skyBot: "#7d140b",
+    celestialColor: "#ff5500",
+    celestialGlow: "#ff0000",
+    cloudColor: "rgba(90, 70, 70, 0.4)",
+    mountainFar: "#260808",
+    mountainNear: "#3b0e0e",
+    groundFill: "#1c1919",
+    groundTop: "#cf3415",
+    liquidTop: "#ff5400",
+    liquidBot: "#9e0000",
+    liquidWave: "rgba(255, 220, 0, 0.6)",
+    bridgeFill: "#2b2626",
+    bridgePost: "#141212",
+    platFill: "#2e2424",
+    platTop: "#ff6d00"
+  }
+];
+
+const keys = { left: false, right: false, jump: false };
+
+function handleJumpOrFlight() {
+  const now = Date.now();
+  if (now - lastJumpPressTime < 300 && !player.grounded && !player.isFlying) {
+    player.startFlight();
+  } else {
+    player.jump();
+  }
+  lastJumpPressTime = now;
+}
+
+window.addEventListener('keydown', (e) => {
+  if (gamePaused) return;
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+  if (['ArrowUp', 'KeyW', 'Space'].includes(e.code)) {
+    if (!keys.jump) {
+      handleJumpOrFlight();
+    }
+    keys.jump = true;
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+  if (['ArrowUp', 'KeyW', 'Space'].includes(e.code)) keys.jump = false;
+});
+
+const bindTouch = (id, keyName) => {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gamePaused) return;
+    if (keyName === 'jump') handleJumpOrFlight();
+    keys[keyName] = true;
+  });
+  btn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys[keyName] = false;
+  });
+};
+bindTouch('btnLeft', 'left');
+bindTouch('btnRight', 'right');
+bindTouch('btnJump', 'jump');
+
+function getGroundHeight(x) {
+  if (x > 1150 && x < 1450) return 255;
+  if (x >= 1450 && x <= 1750) return 215;
+  if (x > 2100 && x < 2800) return 205 + Math.sin(x * 0.015) * 6;
+  return 220 + Math.sin(x * 0.01) * 4;
+}
+
+const platforms = [
+  { x: 220,  y: 165, w: 90,  h: 12 },
+  { x: 420,  y: 135, w: 100, h: 12 },
+  { x: 680,  y: 155, w: 85,  h: 12 },
+  { x: 920,  y: 140, w: 110, h: 12 },
+  { x: 1200, y: 175, w: 70,  h: 10 },
+  { x: 1330, y: 145, w: 70,  h: 10 },
+  { x: 1550, y: 150, w: 95,  h: 12 },
+  { x: 1820, y: 130, w: 100, h: 12 },
+  { x: 2350, y: 140, w: 120, h: 12 }
+];
+
+const mainCheckpoints = [
+  {
+    x: 550,
+    title: "Pergunta 1 (Nível básico)",
+    text: "Qual é a principal função de uma oração subordinada adjetiva?",
+    options: [
+      "Funcionar como um adjetivo, caracterizando um substantivo.",
+      "Indicar uma circunstância de tempo.",
+      "Funcionar como o sujeito direto da frase."
+    ],
+    correct: 0,
+    explanation: "A oração subordinada adjetiva exerce o papel de um adjetivo. Ela qualifica, restringe ou caracteriza um substantivo ou pronome da oração principal.",
+    answered: false
+  },
+  {
+    x: 1500,
+    title: "Identificação de Termo",
+    text: "Na frase 'Comprei um livro que é muito interessante', a Oração Subordinada Adjetiva refere-se a qual palavra?",
+    options: [
+      "Ao verbo Comprei.",
+      "Ao substantivo livro.",
+      "Ao advérbio de intensidade."
+    ],
+    correct: 1,
+    explanation: "A oração subordinada adjetiva sempre se conecta a um antecedente da oração principal, que neste caso é o substantivo 'livro'.",
+    answered: false
+  },
+  {
+    x: 2450,
+    title: "Iniciação da Oração",
+    text: "As orações subordinadas adjetivas são introduzidas tipicamente por:",
+    options: [
+      "Conjunções integrantes.",
+      "Pronomes relativos (como que, quem, cujo).",
+      "Preposições essenciais."
+    ],
+    correct: 1,
+    explanation: "As orações adjetivas são introduzidas por pronomes relativos (que, quem, cujo, onde, etc.), que retomam o substantivo anterior.",
+    answered: false
+  }
+];
+
+const extraCheckpoints = [
+  {
+    title: "Desafio Avançado I",
+    text: "Na frase 'O atleta, cujo esforço foi recompensado, venceu a prova', o pronome cujo indica:",
+    options: [
+      "Posse em relação ao antecedente.",
+      "Tempo decorrido.",
+      "Modo como a prova foi realizada."
+    ],
+    correct: 0,
+    explanation: "O pronome relativo 'cujo' estabelece uma relação de posse entre o antecedente e o termo subsequente, concordando em gênero e número com a coisa possuída.",
+    answered: false
+  },
+  {
+    title: "Desafio Avançado II",
+    text: "Assinale a alternativa que apresenta uma oração subordinada adjetiva com sentido explicativo:",
+    options: [
+      "Os alunos que estudaram passaram.",
+      "O sol, que é uma estrela, ilumina a Terra.",
+      "Quero o livro que está na mesa."
+    ],
+    correct: 1,
+    explanation: "A oração explicativa vem isolada entre vírgulas e amplia o sentido de um termo já conhecido ou geral, como o fato de o Sol ser uma estrela.",
+    answered: false
+  }
+];
+
+const player = {
+  x: 100,
+  y: 150,
+  w: 24,
+  h: 40,
+  vx: 0,
+  vy: 0,
+  speed: 2.6,
+  jumpForce: -6.5,
+  gravity: 0.35,
+  grounded: false,
+  facingLeft: false,
+  animTimer: 0,
+  isFlying: false,
+  flyTimer: 0,
+  thrusterParticles: [],
+
+  startFlight() {
+    this.isFlying = true;
+    this.flyTimer = 50;
+    this.vy = -2.2;
+  },
+
+  update() {
+    if (gamePaused) return;
+
+    if (keys.left) {
+      this.vx = -this.speed;
+      this.facingLeft = true;
+    } else if (keys.right) {
+      this.vx = this.speed;
+      this.facingLeft = false;
+    } else {
+      this.vx *= 0.65;
+    }
+
+    this.x += this.vx;
+    this.x = Math.max(10, Math.min(worldWidth - 30, this.x));
+
+    if (this.isFlying) {
+      this.vy = -0.6;
+      this.flyTimer--;
+      if (this.flyTimer <= 0) {
+        this.isFlying = false;
+      }
+    } else {
+      this.vy += this.gravity;
+    }
+
+    this.y += this.vy;
+
+    const groundY = getGroundHeight(this.x + this.w / 2) - this.h;
+    let isOnBridge = (this.x + this.w / 2 >= 1140 && this.x + this.w / 2 <= 1460);
+    let effectiveGround = groundY;
+    if (this.x + this.w / 2 > 1150 && this.x + this.w / 2 < 1450 && !isOnBridge) {
+      effectiveGround = 250;
+    }
+
+    this.grounded = false;
+
+    if (this.y >= effectiveGround) {
+      this.y = effectiveGround;
+      this.vy = 0;
+      this.grounded = true;
+      this.isFlying = false;
+    }
+
+    platforms.forEach(plat => {
+      if (
+        this.x + this.w > plat.x + 4 &&
+        this.x < plat.x + plat.w - 4 &&
+        this.y + this.h >= plat.y &&
+        this.y + this.h <= plat.y + plat.h + 6 &&
+        this.vy >= 0
+      ) {
+        this.y = plat.y - this.h;
+        this.vy = 0;
+        this.grounded = true;
+        this.isFlying = false;
+      }
+    });
+
+    this.animTimer += 0.15;
+
+    if ((!this.grounded || this.isFlying) && Math.random() < 0.75) {
+      let offsetX = this.facingLeft ? 14 : 10;
+      let randX = (Math.random() * 4) - 2;
+      this.thrusterParticles.push({
+        x: this.x + offsetX + randX,
+        y: this.y + this.h - 2,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() * 2) + 1.2,
+        life: 1,
+        size: (Math.random() * 3) + 2
+      });
+    }
+
+    for (let i = this.thrusterParticles.length - 1; i >= 0; i--) {
+      let p = this.thrusterParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.08;
+      if (p.life <= 0) this.thrusterParticles.splice(i, 1);
+    }
+
+    if (!isExtraMode) {
+      mainCheckpoints.forEach(cp => {
+        let dist = Math.abs((this.x + this.w / 2) - cp.x);
+        if (!cp.answered && dist < 25) {
+          openQuestionModal(cp);
+        }
+      });
+
+      let allMainAnswered = mainCheckpoints.every(cp => cp.answered);
+      if (allMainAnswered && !extraPromptTriggered && this.x >= 2900) {
+        extraPromptTriggered = true;
+        showEndGamePrompt();
+      }
+    }
+  },
+
+  jump() {
+    if (this.grounded) {
+      this.vy = this.jumpForce;
+      this.grounded = false;
+    }
+  },
+
+  draw(ctx) {
+    const px = this.x - cameraX;
+    const py = this.y;
+
+    this.thrusterParticles.forEach(p => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x - cameraX, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 240, 255, ${p.life})`;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    ctx.save();
+    
+    if (this.facingLeft) {
+      ctx.translate(px + this.w / 2, py + this.h / 2);
+      ctx.scale(-1, 1);
+      ctx.translate(-(px + this.w / 2), -(py + this.h / 2));
+    }
+
+    let isMoving = this.grounded && Math.abs(this.vx) > 0.3;
+    const walkOffset = isMoving ? Math.sin(this.animTimer * 2) * 2.5 : 0;
+    const idleBob = this.grounded ? Math.sin(this.animTimer * 0.8) * 0.8 : 0;
+    const baseY = py + idleBob;
+
+    if (this.grounded) {
+      ctx.beginPath();
+      ctx.ellipse(px + 12, py + this.h - 1, 10, 3, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fill();
+    }
+
+    let legLeftX = px + 5 - (walkOffset * 0.8);
+    ctx.fillStyle = '#b81419';
+    ctx.beginPath();
+    ctx.roundRect(legLeftX, baseY + 24, 6, 12, 3);
+    ctx.fill();
+    ctx.fillStyle = '#f4d160';
+    ctx.fillRect(legLeftX, baseY + 27, 6, 3);
+    ctx.fillStyle = '#d92027';
+    ctx.beginPath();
+    ctx.roundRect(legLeftX - 1, baseY + 34, 7, 5, 2);
+    ctx.fill();
+
+    let legRightX = px + 13 + (walkOffset * 0.8);
+    ctx.fillStyle = '#9e0d12';
+    ctx.beginPath();
+    ctx.roundRect(legRightX, baseY + 24, 6, 12, 3);
+    ctx.fill();
+    ctx.fillStyle = '#e0b838';
+    ctx.fillRect(legRightX, baseY + 27, 6, 3);
+    ctx.fillStyle = '#b81419';
+    ctx.beginPath();
+    ctx.roundRect(legRightX, baseY + 34, 7, 5, 2);
+    ctx.fill();
+
+    let torsoGrad = ctx.createLinearGradient(px + 4, baseY + 10, px + 20, baseY + 24);
+    torsoGrad.addColorStop(0, '#f5252c');
+    torsoGrad.addColorStop(0.5, '#d92027');
+    torsoGrad.addColorStop(1, '#8a0a0e');
+
+    ctx.fillStyle = torsoGrad;
+    ctx.beginPath();
+    ctx.roundRect(px + 4, baseY + 10, 16, 15, [4, 4, 3, 3]);
+    ctx.fill();
+
+    ctx.fillStyle = '#f4d160';
+    ctx.beginPath();
+    ctx.roundRect(px + 5, baseY + 21, 14, 4, 1);
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px + 12, baseY + 16, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#e6ffff';
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px + 12, baseY + 16, 1.8, 0, Math.PI * 2);
+    ctx.fillStyle = '#00f0ff';
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = '#9e0d12';
+    ctx.beginPath();
+    ctx.roundRect(px + 1, baseY + 12 - (walkOffset * 0.5), 4, 10, 2);
+    ctx.fill();
+
+    let shoulderGrad = ctx.createLinearGradient(px + 14, baseY + 9, px + 22, baseY + 15);
+    shoulderGrad.addColorStop(0, '#ffe875');
+    shoulderGrad.addColorStop(1, '#c99e24');
+    ctx.fillStyle = shoulderGrad;
+    ctx.beginPath();
+    ctx.arc(px + 18, baseY + 12, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    let armX = px + 17 + (walkOffset * 0.5);
+    let armY = baseY + 13 + (walkOffset * 0.4);
+    ctx.fillStyle = '#d92027';
+    ctx.beginPath();
+    ctx.roundRect(armX, armY, 4.5, 9, 2);
+    ctx.fill();
+    ctx.fillStyle = '#f4d160';
+    ctx.beginPath();
+    ctx.arc(armX + 2, armY + 9, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    let helmGrad = ctx.createLinearGradient(px + 4, baseY, px + 20, baseY + 11);
+    helmGrad.addColorStop(0, '#ff3b42');
+    helmGrad.addColorStop(0.6, '#d92027');
+    helmGrad.addColorStop(1, '#7a0508');
+    ctx.fillStyle = helmGrad;
+    ctx.beginPath();
+    ctx.roundRect(px + 4, baseY, 16, 12, [6, 6, 3, 3]);
+    ctx.fill();
+
+    let maskGrad = ctx.createLinearGradient(px + 10, baseY + 2, px + 19, baseY + 10);
+    maskGrad.addColorStop(0, '#fff085');
+    maskGrad.addColorStop(1, '#d4a317');
+    ctx.fillStyle = maskGrad;
+    ctx.beginPath();
+    ctx.moveTo(px + 10, baseY + 2);
+    ctx.lineTo(px + 18, baseY + 2);
+    ctx.lineTo(px + 19, baseY + 6);
+    ctx.lineTo(px + 16, baseY + 10);
+    ctx.lineTo(px + 10, baseY + 9);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(px + 12, baseY + 4, 6, 2.2, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillRect(px + 13, baseY + 4.5, 4.5, 1.2);
+    ctx.restore();
+
+    ctx.restore();
+  }
+};
+
+function openQuestionModal(cp) {
+  gamePaused = true;
+  currentQuestion = cp;
+  keys.left = false;
+  keys.right = false;
+  keys.jump = false;
+  
+  document.getElementById('qTitle').innerHTML = cp.title;
+  document.getElementById('qText').innerHTML = cp.text;
+  document.getElementById('qFeedback').innerHTML = "";
+  
+  const optionsContainer = document.getElementById('qOptions');
+  optionsContainer.innerHTML = "";
+  
+  cp.options.forEach((opt, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'qBtn';
+    btn.innerHTML = (index + 1) + ". " + opt;
+    btn.onclick = () => checkAnswer(index);
+    optionsContainer.appendChild(btn);
+  });
+
+  document.getElementById('questionModal').style.display = 'block';
+}
+
+function checkAnswer(selectedIndex) {
+  const feedback = document.getElementById('qFeedback');
+  totalAttempted++;
+  if (selectedIndex === currentQuestion.correct) {
+    correctCount++;
+    feedback.style.color = '#38b000';
+    currentQuestion.answered = true;
+    feedback.innerHTML = "Resposta correta!";
+    
+    const optionsContainer = document.getElementById('qOptions');
+    optionsContainer.innerHTML = "";
+    
+    const actionBox = document.createElement('div');
+    actionBox.style.marginTop = "10px";
+    actionBox.style.display = "flex";
+    actionBox.style.gap = "10px";
+    
+    const btnContinue = document.createElement('button');
+    btnContinue.className = 'qBtn';
+    btnContinue.style.flex = "1";
+    btnContinue.style.marginTop = "0";
+    btnContinue.innerHTML = "Continuar";
+    btnContinue.onclick = finishQuestionAndAdvance;
+    
+    const btnExplain = document.createElement('button');
+    btnExplain.className = 'qBtn';
+    btnExplain.style.flex = "1";
+    btnExplain.style.marginTop = "0";
+    btnExplain.innerHTML = "Entender melhor";
+    btnExplain.onclick = showExplanationBlock;
+    
+    actionBox.appendChild(btnContinue);
+    actionBox.appendChild(btnExplain);
+    optionsContainer.appendChild(actionBox);
+
+  } else {
+    feedback.style.color = '#d92027';
+    feedback.innerHTML = "Resposta incorreta. Tente novamente!";
+  }
+}
+
+function finishQuestionAndAdvance() {
+  currentStageIndex = Math.min(3, currentStageIndex + 1);
+  document.getElementById('questionModal').style.display = 'none';
+  gamePaused = false;
+  if (isExtraMode) {
+    const allExtraAnswered = extraCheckpoints.every(cp => cp.answered);
+    if (allExtraAnswered) {
+      showFinalScoreScreen();
+    } else {
+      const nextExtra = extraCheckpoints.find(cp => !cp.answered);
+      if (nextExtra) openQuestionModal(nextExtra);
+    }
+  }
+}
+
+function showExplanationBlock() {
+  document.getElementById('qText').innerHTML = currentQuestion.explanation;
+  document.getElementById('qFeedback').innerHTML = "";
+  
+  const optionsContainer = document.getElementById('qOptions');
+  optionsContainer.innerHTML = "";
+  
+  const btnBack = document.createElement('button');
+  btnBack.className = 'qBtn';
+  btnBack.style.textAlign = "center";
+  btnBack.innerHTML = "Continuar";
+  btnBack.onclick = finishQuestionAndAdvance;
+  optionsContainer.appendChild(btnBack);
+}
+
+function showEndGamePrompt() {
+  gamePaused = true;
+  document.getElementById('qTitle').innerHTML = "Fase Concluída!";
+  document.getElementById('qText').innerHTML = "Você deseja treinar mais um pouco? (perguntas extras)";
+  document.getElementById('qFeedback').innerHTML = "";
+  
+  const optionsContainer = document.getElementById('qOptions');
+  optionsContainer.innerHTML = "";
+  
+  const btnYes = document.createElement('button');
+  btnYes.className = 'qBtn';
+  btnYes.innerHTML = "1. Sim, adoraria";
+  btnYes.onclick = () => {
+    isExtraMode = true;
+    document.getElementById('questionModal').style.display = 'none';
+    const firstExtra = extraCheckpoints.find(cp => !cp.answered);
+    if (firstExtra) openQuestionModal(firstExtra);
+  };
+  optionsContainer.appendChild(btnYes);
+
+  const btnNo = document.createElement('button');
+  btnNo.className = 'qBtn';
+  btnNo.innerHTML = "2. Não, obrigado";
+  btnNo.onclick = () => {
+    showFinalScoreScreen();
+  };
+  optionsContainer.appendChild(btnNo);
+
+  document.getElementById('questionModal').style.display = 'block';
+}
+
+function showFinalScoreScreen() {
+  gamePaused = true;
+  document.getElementById('qTitle').innerHTML = "Fim de Jogo";
+  document.getElementById('qText').innerHTML = "Agradeço por jogar, tenha uma ótima prova!<br><br><b>[" + correctCount + "/" + totalAttempted + "]</b>";
+  document.getElementById('qFeedback').innerHTML = "";
+  
+  const optionsContainer = document.getElementById('qOptions');
+  optionsContainer.innerHTML = "";
+  
+  const btnClose = document.createElement('button');
+  btnClose.className = 'qBtn';
+  btnClose.style.textAlign = "center";
+  btnClose.innerHTML = "Fechar";
+  btnClose.onclick = () => {
+    document.getElementById('questionModal').style.display = 'none';
+    gamePaused = false;
+  };
+  optionsContainer.appendChild(btnClose);
+
+  document.getElementById('questionModal').style.display = 'block';
+}
+
+function restartGame() {
+  document.activeElement.blur();
+  player.x = 100;
+  player.y = 150;
+  player.vx = 0;
+  player.vy = 0;
+  player.isFlying = false;
+  player.flyTimer = 0;
+  correctCount = 0;
+  totalAttempted = 0;
+  currentStageIndex = 0;
+  isExtraMode = false;
+  extraPromptTriggered = false;
+  mainCheckpoints.forEach(cp => cp.answered = false);
+  extraCheckpoints.forEach(cp => cp.answered = false);
+  document.getElementById('questionModal').style.display = 'none';
+  gamePaused = false;
+}
+
+const particles = Array.from({ length: 45 }, () => ({
+  x: Math.random() * worldWidth,
+  y: Math.random() * gameHeight,
+  size: (Math.random() * 1.8) + 0.6,
+  speedX: (Math.random() - 0.5) * 0.3,
+  speedY: (Math.random() - 0.5) * 0.2,
+  alpha: Math.random(),
+  color: Math.random() > 0.4 ? '#00f0ff' : '#ffd700'
+}));
+
+const clouds = Array.from({ length: 14 }, (_, i) => ({
+  x: (i * 260) + (Math.random() * 100),
+  y: 15 + (Math.random() * 40),
+  w: 60 + (Math.random() * 40),
+  speed: 0.1 + (Math.random() * 0.15)
+}));
+
+function drawSceneryProps(biomeIndex, tx, ty) {
+  if (biomeIndex === 0) {
+    if (tx + cameraX > 1000 && tx + cameraX < 2000) {
+      ctx.fillStyle = '#e2d4f7';
+      ctx.beginPath();
+      ctx.roundRect(tx + 18, ty - 35, 10, 35, 4);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(tx + 23, ty - 38, 22, Math.PI, 0);
+      ctx.fillStyle = '#9d4edd';
+      ctx.shadowColor = '#c77dff';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    } else if (tx + cameraX >= 2100) {
+      ctx.fillStyle = '#4a4e69';
+      ctx.fillRect(tx + 10, ty - 65, 22, 65);
+      ctx.fillStyle = '#9a8c98';
+      ctx.fillRect(tx + 6, ty - 70, 30, 8);
+    } else {
+      ctx.fillStyle = '#3a2416';
+      ctx.fillRect(tx + 15, ty - 80, 20, 80);
+      ctx.fillStyle = '#1b4332';
+      ctx.beginPath();
+      ctx.arc(tx + 25, ty - 90, 38, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (biomeIndex === 1) {
+    if ((tx + cameraX) % 440 === 60) {
+      ctx.fillStyle = '#c98838';
+      ctx.beginPath();
+      ctx.moveTo(tx + 10, ty);
+      ctx.lineTo(tx + 16, ty - 65);
+      ctx.lineTo(tx + 28, ty - 65);
+      ctx.lineTo(tx + 34, ty);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#2d6a4f';
+      ctx.beginPath();
+      ctx.roundRect(tx + 20, ty - 48, 8, 48, 4);
+      ctx.roundRect(tx + 11, ty - 35, 10, 6, 3);
+      ctx.roundRect(tx + 11, ty - 44, 6, 14, 3);
+      ctx.roundRect(tx + 27, ty - 28, 10, 6, 3);
+      ctx.roundRect(tx + 31, ty - 38, 6, 15, 3);
+      ctx.fill();
+    }
+  } else if (biomeIndex === 2) {
+    ctx.fillStyle = '#3d2c2e';
+    ctx.fillRect(tx + 21, ty - 20, 8, 20);
+    ctx.fillStyle = '#1b4965';
+    ctx.beginPath();
+    ctx.moveTo(tx + 5, ty - 20);
+    ctx.lineTo(tx + 25, ty - 75);
+    ctx.lineTo(tx + 45, ty - 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(tx + 15, ty - 48);
+    ctx.lineTo(tx + 25, ty - 75);
+    ctx.lineTo(tx + 35, ty - 48);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.fillStyle = '#2b2626';
+    ctx.beginPath();
+    ctx.moveTo(tx + 8, ty);
+    ctx.lineTo(tx + 18, ty - 50);
+    ctx.lineTo(tx + 36, ty - 40);
+    ctx.lineTo(tx + 44, ty);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.save();
+    ctx.fillStyle = '#ff6d00';
+    ctx.shadowColor = '#ffaa00';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(tx + 22, ty - 45);
+    ctx.lineTo(tx + 26, ty - 65);
+    ctx.lineTo(tx + 30, ty - 45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function render() {
+  if (!gamePaused) {
+    let targetCamX = player.x - (gameWidth / 2) + (player.w / 2);
+    cameraX += (targetCamX - cameraX) * 0.08;
+    cameraX = Math.max(0, Math.min(worldWidth - gameWidth, cameraX));
+    player.update();
+  }
+
+  const currentBiome = biomes[currentStageIndex] || biomes[0];
+
+  ctx.clearRect(0, 0, gameWidth, gameHeight);
+
+  let skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
+  skyGrad.addColorStop(0, currentBiome.skyTop);
+  skyGrad.addColorStop(0.6, currentBiome.skyMid);
+  skyGrad.addColorStop(1, currentBiome.skyBot);
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, gameWidth, gameHeight);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(380 - (cameraX * 0.01), 45, 18, 0, Math.PI * 2);
+  ctx.fillStyle = currentBiome.celestialColor;
+  ctx.shadowColor = currentBiome.celestialGlow;
+  ctx.shadowBlur = 15;
+  ctx.fill();
+  ctx.restore();
+
+  if (currentStageIndex === 2) {
+    ctx.save();
+    let auroraGrad = ctx.createLinearGradient(0, 20, 0, 90);
+    auroraGrad.addColorStop(0, 'rgba(0, 255, 170, 0)');
+    auroraGrad.addColorStop(0.5, 'rgba(0, 255, 170, 0.18)');
+    auroraGrad.addColorStop(1, 'rgba(0, 180, 255, 0)');
+    ctx.fillStyle = auroraGrad;
+    ctx.fillRect(0, 20, gameWidth, 70);
+    ctx.restore();
+  }
+
+  ctx.fillStyle = currentBiome.cloudColor;
+  clouds.forEach(c => {
+    if (!gamePaused) {
+      c.x -= c.speed;
+      if (c.x < -100) c.x = worldWidth + 50;
+    }
+    let cx = c.x - (cameraX * 0.03);
+    ctx.beginPath();
+    ctx.roundRect(cx, c.y, c.w, 14, 7);
+    ctx.roundRect(cx + 10, c.y - 6, c.w - 20, 12, 6);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = currentBiome.mountainFar;
+  ctx.beginPath();
+  ctx.moveTo(0, gameHeight);
+  for (let x = 0; x <= gameWidth; x += 20) {
+    let wx = x + (cameraX * 0.08);
+    let wy = 140 + (Math.sin(wx * 0.005) * 35) + (Math.cos(wx * 0.012) * 15);
+    if (currentStageIndex === 1) {
+      wy = 155 + (Math.sin(wx * 0.004) * 20);
+    } else if (currentStageIndex === 2) {
+      wy = 135 + Math.abs(Math.sin(wx * 0.008)) * -45 + 30;
+    }
+    ctx.lineTo(x, wy);
+  }
+  ctx.lineTo(gameWidth, gameHeight);
+  ctx.fill();
+
+  let landmarkX = 2400 - (cameraX * 0.08);
+  if (landmarkX > -100 && landmarkX < gameWidth + 100) {
+    if (currentStageIndex === 0) {
+      ctx.fillStyle = '#160b26';
+      ctx.fillRect(landmarkX, 100, 70, 70);
+      ctx.fillRect(landmarkX + 15, 80, 40, 20);
+      ctx.fillRect(landmarkX + 28, 65, 14, 15);
+    } else if (currentStageIndex === 1) {
+      ctx.fillStyle = '#471807';
+      ctx.beginPath();
+      ctx.moveTo(landmarkX - 20, 170);
+      ctx.lineTo(landmarkX + 35, 85);
+      ctx.lineTo(landmarkX + 90, 170);
+      ctx.closePath();
+      ctx.fill();
+    } else if (currentStageIndex === 2) {
+      ctx.fillStyle = '#0d263b';
+      ctx.fillRect(landmarkX + 10, 90, 50, 80);
+      ctx.fillStyle = '#aeecef';
+      ctx.fillRect(landmarkX + 20, 70, 30, 20);
+    } else {
+      ctx.fillStyle = '#1a0404';
+      ctx.beginPath();
+      ctx.moveTo(landmarkX - 30, 170);
+      ctx.lineTo(landmarkX + 20, 80);
+      ctx.lineTo(landmarkX + 50, 80);
+      ctx.lineTo(landmarkX + 100, 170);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#ff5400';
+      ctx.fillRect(landmarkX + 22, 78, 26, 6);
+    }
+  }
+
+  ctx.fillStyle = currentBiome.mountainNear;
+  ctx.beginPath();
+  ctx.moveTo(0, gameHeight);
+  for (let x = 0; x <= gameWidth; x += 15) {
+    let wx = x + (cameraX * 0.2);
+    let wy = 175 + (Math.sin(wx * 0.01) * 20);
+    ctx.lineTo(x, wy);
+  }
+  ctx.lineTo(gameWidth, gameHeight);
+  ctx.fill();
+
+  for (let i = 0; i < worldWidth; i += 180) {
+    let treeX = i - (cameraX * 0.2);
+    if (treeX > -40 && treeX < gameWidth + 40) {
+      ctx.fillStyle = currentBiome.mountainFar;
+      if (currentStageIndex === 0) {
+        ctx.fillRect(treeX + 15, 140, 10, 50);
+        ctx.beginPath();
+        ctx.arc(treeX + 20, 130, 22, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (currentStageIndex === 2) {
+        ctx.beginPath();
+        ctx.moveTo(treeX + 5, 180);
+        ctx.lineTo(treeX + 20, 125);
+        ctx.lineTo(treeX + 35, 180);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  let riverStartX = 1150 - cameraX;
+  let riverEndX = 1450 - cameraX;
+  if (riverEndX > 0 && riverStartX < gameWidth) {
+    let waterGrad = ctx.createLinearGradient(0, 220, 0, gameHeight);
+    waterGrad.addColorStop(0, currentBiome.liquidTop);
+    waterGrad.addColorStop(1, currentBiome.liquidBot);
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(riverStartX, 225, 300, gameHeight - 225);
+
+    ctx.fillStyle = currentBiome.liquidWave;
+    for (let w = 0; w < 300; w += 40) {
+      let waveX = riverStartX + w + (Math.sin((Date.now() * 0.003) + w) * 6);
+      ctx.fillRect(waveX, 235 + (w % 15), 25, 2);
+    }
+  }
+
+  ctx.fillStyle = currentBiome.groundFill;
+  ctx.beginPath();
+  ctx.moveTo(0, gameHeight);
+  for (let x = -20; x <= gameWidth + 20; x += 8) {
+    let wx = x + cameraX;
+    let wy = getGroundHeight(wx);
+    ctx.lineTo(x, wy);
+  }
+  ctx.lineTo(gameWidth, gameHeight);
+  ctx.fill();
+
+  ctx.strokeStyle = currentBiome.groundTop;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  for (let x = -20; x <= gameWidth + 20; x += 8) {
+    let wx = x + cameraX;
+    let wy = getGroundHeight(wx);
+    if (wx > 1150 && wx < 1450) continue;
+    ctx.lineTo(x, wy + 2);
+  }
+  ctx.stroke();
+
+  let bridgeX = 1140 - cameraX;
+  if (bridgeX + 320 > 0 && bridgeX < gameWidth) {
+    ctx.fillStyle = currentBiome.bridgeFill;
+    ctx.fillRect(bridgeX, 222, 320, 8);
+    for (let p = 10; p < 310; p += 40) {
+      ctx.fillStyle = currentBiome.bridgePost;
+      ctx.fillRect(bridgeX + p, 228, 6, 25);
+      ctx.fillStyle = currentBiome.bridgeFill;
+      ctx.fillRect(bridgeX + p - 2, 220, 10, 4);
+    }
+  }
+
+  mainCheckpoints.forEach(cp => {
+    let cpx = cp.x - cameraX;
+    if (cpx > -50 && cpx < gameWidth + 50) {
+      let cpy = getGroundHeight(cp.x);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cpx + 12, cpy - 25, 14, 0, Math.PI * 2);
+      ctx.fillStyle = cp.answered ? '#38b000' : '#ffd700';
+      ctx.shadowColor = cp.answered ? '#38b000' : '#ffd700';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+
+  for (let x = 60; x < worldWidth; x += 220) {
+    let tx = x - cameraX;
+    if (tx > -80 && tx < gameWidth + 80) {
+      let ty = getGroundHeight(x);
+      drawSceneryProps(currentStageIndex, tx, ty);
+    }
+  }
+
+  platforms.forEach(p => {
+    let px = p.x - cameraX;
+    if (px + p.w > 0 && px < gameWidth) {
+      ctx.fillStyle = currentBiome.platFill;
+      ctx.beginPath();
+      ctx.roundRect(px, p.y, p.w, p.h, 4);
+      ctx.fill();
+      ctx.fillStyle = currentBiome.platTop;
+      ctx.fillRect(px, p.y, p.w, 3.5);
+    }
+  });
+
+  player.draw(ctx);
+
+  particles.forEach(pt => {
+    if (!gamePaused) {
+      pt.x += pt.speedX;
+      pt.y += currentStageIndex === 2 ? Math.abs(pt.speedY) + 0.3 : currentStageIndex === 3 ? -Math.abs(pt.speedY) - 0.3 : pt.speedY;
+      if (pt.x < 0) pt.x = worldWidth;
+      if (pt.x > worldWidth) pt.x = 0;
+      if (pt.y < 0) pt.y = gameHeight;
+      if (pt.y > gameHeight) pt.y = 0;
+    }
+
+    let pScreenX = pt.x - (cameraX * 1.1);
+    if (pScreenX > 0 && pScreenX < gameWidth) {
+      let pColor = pt.color;
+      if (currentStageIndex === 1) pColor = '#ffd166';
+      if (currentStageIndex === 2) pColor = '#ffffff';
+      if (currentStageIndex === 3) pColor = '#ff5400';
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pScreenX, pt.y, pt.size, 0, Math.PI * 2);
+      ctx.fillStyle = pColor;
+      ctx.shadowColor = pColor;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+
+  requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
